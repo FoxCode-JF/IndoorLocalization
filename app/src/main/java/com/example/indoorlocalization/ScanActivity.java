@@ -37,6 +37,8 @@ public class ScanActivity extends AppCompatActivity  {
     private int txPower = -60;
     private double myLong = 0;
     private double myLat = 0;
+    private double px0;
+    private double py0;
 
     private boolean mScanning;
     private boolean mCalibrated;
@@ -270,8 +272,8 @@ public class ScanActivity extends AppCompatActivity  {
                     System.out.println("first: " + iter.first + "second: " + iter.second );
                 }
 //                translate points so pointVec[0] is at the origin
-                double px0 = pointVec.get(0).first;
-                double py0 = pointVec.get(0).second;
+                px0 = pointVec.get(0).first;
+                py0 = pointVec.get(0).second;
                 pointVec.set(0, Pair.create(0.0, 0.0));
                 pointVec.set(0, Pair.create(pointVec.get(1).first - px0, pointVec.get(1).second - py0));
                 pointVec.set(0, Pair.create(pointVec.get(2).first - px0, pointVec.get(2).second - py0));
@@ -301,7 +303,30 @@ public class ScanActivity extends AppCompatActivity  {
             double r0 = calculateDistance(closestBeacons.valueAt(0), MACandTxPowerMap.get(closestBeacons.keyAt(0)));
             double r1 = calculateDistance(closestBeacons.valueAt(1), MACandTxPowerMap.get(closestBeacons.keyAt(1)));
             double r2 = calculateDistance(closestBeacons.valueAt(2), MACandTxPowerMap.get(closestBeacons.keyAt(2)));
-            double aX = pointVec.get(2).first - r2;
+            double aX, cX;
+            aX = cX = pointVec.get(2).first - r2;
+            double aY, bY;
+            aY = bY = pointVec.get(2).second + r2;
+            double bX, dX;
+            bX = dX = pointVec.get(0).first + r0;
+            double cY, dY;
+            cY = dY = pointVec.get(1).second + r1;
+
+            double middleX = Math.abs(aX - bX) / 2;
+            double middleY = Math.abs(aY - cY) / 2;
+
+            middleX += px0;
+            middleY += py0;
+            double distanceBack = Math.sqrt(Math.pow(px0, 2) + Math.pow(py0, 2));
+            double iX = px0 / distanceBack;
+            double iY = py0 / distanceBack;
+            double dotProduct_middle = iX * middleX + iY * middleY;
+            double middleYCoord = Math.sqrt(Math.pow(distanceBack, 2) - Math.pow(dotProduct_middle, 2));
+            double longti = Math.asin(middleX * middleY / 2);
+            double lati = Math.acos(middleX/Math.cos(longti));
+            System.out.println(longti + "\n" + lati + "\n\n\n");
+
+
 
         }
     }
