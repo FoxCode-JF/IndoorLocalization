@@ -52,10 +52,10 @@ public class ScanActivity extends AppCompatActivity  {
     Button stopBtn;
     static HashMap<String, Integer> MACandTxPowerMap = new HashMap<String, Integer>() {
         {
-            put("88:40:3B:EE:97:6B", -60);  // watch
+            put("0B:E1:DD:D5:DF:9D", -60);  // watch
             put("CC:98:8B:CF:BC:82", -60);  // Jerek headphones
             put("38:18:4C:17:54:80", -60);  // Andreas Headphones
-            put("0C:E4:A0:B4:AB:54", -60); // Jerek Phone
+            put("1B:FC:EE:F5:93:3D", -60); // Jerek Phone
             put("64:A2:F9:B5:28:69", -60); // Andreas Phone
 //            Thingy's:
             put("dc:ee:f9:e0:3d:4e", -60);
@@ -86,6 +86,17 @@ public class ScanActivity extends AppCompatActivity  {
             put("f4:63:6b:d0:77:b9", new Pair<Double, Double>(52.238714, 6.856247));
             put("e1:80:f0:25:83:1c", new Pair<Double, Double>(52.238813, 6.855889));
             put("c0:88:dd:ec:c1:3d", new Pair<Double, Double>(52.238943, 6.856113));
+
+
+//            TEST COORDINATES
+
+            put("0B:E1:DD:D5:DF:9D", new Pair<Double, Double>(52.238804, 6.856384));  // watch
+            put("CC:98:8B:CF:BC:82", new Pair<Double, Double>(52.238813, 6.855889));  // Jerek headphones
+            put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
+            put("1B:FC:EE:F5:93:3D", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
+
+            put("64:A2:F9:B5:28:69", new Pair<Double, Double>(52.238714, 6.856247)); // Andreas Phone
+
         }
     };
 
@@ -112,14 +123,14 @@ public class ScanActivity extends AppCompatActivity  {
         calibrateBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-//                if(mScanning)  stopLeScan(bluetoothAdapter.getBluetoothLeScanner());
+                if(mScanning)  stopLeScan(bluetoothAdapter.getBluetoothLeScanner());
                 startLeScan(bluetoothAdapter.getBluetoothLeScanner());
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
                         Log.e(TAG, "Calibrating!!!");
 //                      TODO: find a way to discard scan result == null
-                        if(mScanResult.getDataStatus() == ScanResult.DATA_COMPLETE) {
+                        if(mScanResult != null && mScanResult.getDataStatus() == ScanResult.DATA_COMPLETE) {
                             calibrateAt1m(mScanResult);
                             Log.i(TAG, "onLeScan: Address: " + mScanResult.getDevice().getAddress() +
                                     " Name: "+ mScanResult.getDevice().getName() +
@@ -163,21 +174,20 @@ public class ScanActivity extends AppCompatActivity  {
             new ScanCallback() {
                 @Override
                 public void onScanResult(int callbackType, final ScanResult result) {
-                    System.out.println("test");
                     super.onScanResult(callbackType, result);
 //                    TODO: determine power correctry or delete function
 //                    determineTxPower(result);
 
-//                    if(MACandTxPowerMap.containsKey(result.getDevice().getAddress()))
+                    if(MACandTxPowerMap.containsKey(result.getDevice().getAddress()))
                     {
                         mScanResult = result;
                         getDeviceTxPower(result);
-                        Log.i(TAG, "onLeScan: Address: " + result.getDevice().getAddress() +
+                       /* Log.i(TAG, "onLeScan: Address: " + result.getDevice().getAddress() +
                                 " Name: " + result.getDevice().getName() +
                                 " RSSI: " + result.getRssi() +
                                 " txPower: " + txPower +
                                 " Distance: " + calculateDistance(result.getRssi(), txPower)
-                        );
+                        );*/
                         if(!MACandRSSIMap.containsKey(result.getDevice().getAddress())) {
                             MACandRSSIMap.put(result.getDevice().getAddress(), result.getRssi());
                         } else {
@@ -243,7 +253,7 @@ public class ScanActivity extends AppCompatActivity  {
 
         int listSize = sortedBeacons.size();
 //        get closest beacons
-        if(listSize > 3) {
+        if(listSize >= 3) {
             temp = sortedBeacons.subList(listSize - 3, listSize);
             closestBeacons = new ArrayMap<>();
 
@@ -255,7 +265,7 @@ public class ScanActivity extends AppCompatActivity  {
 
 //            translate longitude and latitude to x, y coordinates
             for (Map.Entry<String, Integer> entry: closestBeacons.entrySet()) {
-                System.out.println("\n\n" + entry.getKey() + " " + entry.getValue() + "\n\n");
+//                System.out.println("\n\n" + entry.getKey() + " " + entry.getValue() + "\n\n");
                 String deviceName = entry.getKey();
                 if(deviceCoordinates.containsKey(deviceName)) {
                     double x = EARTH_RADIUS * Math.cos(deviceCoordinates.get(entry.getKey()).first) * Math.cos(deviceCoordinates.get(entry.getKey()).second);
@@ -272,16 +282,16 @@ public class ScanActivity extends AppCompatActivity  {
 
 
             if(!pointVec.isEmpty()){
-                for (Pair<Double, Double> iter: pointVec) {
+               /* for (Pair<Double, Double> iter: pointVec) {
                     System.out.println("first: " + iter.first + "second: " + iter.second );
-                }
+                }*/
 //                translate points so pointVec[0] is at the origin
                 px0 = pointVec.get(0).first;
                 py0 = pointVec.get(0).second;
                 pointVec.set(0, Pair.create(0.0, 0.0));
                 pointVec.set(0, Pair.create(pointVec.get(1).first - px0, pointVec.get(1).second - py0));
                 pointVec.set(0, Pair.create(pointVec.get(2).first - px0, pointVec.get(2).second - py0));
-            }
+
 //                rotate coordinate system so that pointVec[1] is on the X axis
 //                pointVec[1] = (d,0) where d = distance(pointVec[1], (0,0))
 //                i_hat = unit vector in direction of pointVec[1]
@@ -316,8 +326,8 @@ public class ScanActivity extends AppCompatActivity  {
             double cY, dY;
             cY = dY = pointVec.get(1).second + r1;
 
-            double middleX = Math.abs(aX - bX) / 2;
-            double middleY = Math.abs(aY - cY) / 2;
+            double middleX = (bX -aX) / 2;
+            double middleY = (cY - aY) / 2;
 
             middleX += px0;
             middleY += py0;
@@ -326,11 +336,12 @@ public class ScanActivity extends AppCompatActivity  {
             double iY = py0 / distanceBack;
             double dotProduct_middle = iX * middleX + iY * middleY;
             double middleYCoord = Math.sqrt(Math.pow(distanceBack, 2) - Math.pow(dotProduct_middle, 2));
+            double tst = dotProduct_middle * middleYCoord / 2 * 2 * Math.PI / 360;
             double longti = Math.asin(dotProduct_middle * middleYCoord / 2);
             double lati = Math.acos(dotProduct_middle/Math.cos(longti));
             System.out.println(longti + "\n" + lati + "\n\n\n");
 
-
+            }
 
         }
     }
