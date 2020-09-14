@@ -1,6 +1,7 @@
 package com.example.indoorlocalization;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.math.MathUtils;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -52,11 +53,16 @@ public class ScanActivity extends AppCompatActivity  {
     Button stopBtn;
     static HashMap<String, Integer> MACandTxPowerMap = new HashMap<String, Integer>() {
         {
-            put("0B:E1:DD:D5:DF:9D", -60);  // watch
+            put("F8:DF:15:C1:B5:7E", -60);  // watch
             put("CC:98:8B:CF:BC:82", -60);  // Jerek headphones
             put("38:18:4C:17:54:80", -60);  // Andreas Headphones
             put("1B:FC:EE:F5:93:3D", -60); // Jerek Phone
             put("64:A2:F9:B5:28:69", -60); // Andreas Phone
+
+
+            put("3B:C8:4F:17:35:30", -60); // Andreas Phone
+            put("12:1E:3C:32:41:4C", -60); // Jerek Phone
+//
 //            Thingy's:
             put("dc:ee:f9:e0:3d:4e", -60);
             put("f9:fd:a4:88:ce:9e", -60);
@@ -90,12 +96,42 @@ public class ScanActivity extends AppCompatActivity  {
 
 //            TEST COORDINATES
 
-            put("0B:E1:DD:D5:DF:9D", new Pair<Double, Double>(52.238804, 6.856384));  // watch
+            put("F8:DF:15:C1:B5:7E", new Pair<Double, Double>(52.238804, 6.856384));  // watch
             put("CC:98:8B:CF:BC:82", new Pair<Double, Double>(52.238813, 6.855889));  // Jerek headphones
             put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
             put("1B:FC:EE:F5:93:3D", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
+            put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
 
-            put("64:A2:F9:B5:28:69", new Pair<Double, Double>(52.238714, 6.856247)); // Andreas Phone
+            put("3B:C8:4F:17:35:30", new Pair<Double, Double>(52.238714, 6.856247)); // Andreas Phone
+            put("12:1E:3C:32:41:4C", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
+
+           /*
+            13:7D:D4:1B:D2:C3 -78
+            3C:7A:91:AA:98:DC -85
+            0D:A5:43:D7:67:88 -88
+            4A:0C:24:B0:4D:AE -82
+            2A:39:77:B3:66:AA -91
+            07:C9:59:B6:98:3D -96
+            46:93:ED:5E:6F:99 -82
+            1E:D4:58:7D:55:4B -95
+            09:B4:44:AF:3B:0C -99
+            53:F4:86:49:29:1D -98
+            07:4A:27:F7:19:7A -73
+            CC:98:8B:CF:BC:82 -49
+            54:DD:86:AB:1A:CC -93
+            50:F1:4F:EE:59:28 -91
+            25:7E:F5:38:98:62 -101
+            71:E2:34:17:B6:62 -77
+            18:18:00:3D:61:39 -94
+            66:93:EF:6E:93:17 -84
+            25:BB:D0:64:49:5F -73
+            2D:A7:82:23:7F:6A -65
+            2A:6A:0E:9E:E5:25 -87
+            5A:97:E7:70:97:23 -97
+            0D:B6:78:A7:20:6A -95
+            3A:3F:33:A5:61:42 -95
+            08:96:10:E2:14:5F -90
+            03:4A:D7:47:C5:2B -94*/
 
         }
     };
@@ -182,12 +218,12 @@ public class ScanActivity extends AppCompatActivity  {
                     {
                         mScanResult = result;
                         getDeviceTxPower(result);
-                       /* Log.i(TAG, "onLeScan: Address: " + result.getDevice().getAddress() +
+                        Log.i(TAG, "onLeScan: Address: " + result.getDevice().getAddress() +
                                 " Name: " + result.getDevice().getName() +
                                 " RSSI: " + result.getRssi() +
                                 " txPower: " + txPower +
                                 " Distance: " + calculateDistance(result.getRssi(), txPower)
-                        );*/
+                        );
                         if(!MACandRSSIMap.containsKey(result.getDevice().getAddress())) {
                             MACandRSSIMap.put(result.getDevice().getAddress(), result.getRssi());
                         } else {
@@ -268,9 +304,8 @@ public class ScanActivity extends AppCompatActivity  {
 //                System.out.println("\n\n" + entry.getKey() + " " + entry.getValue() + "\n\n");
                 String deviceName = entry.getKey();
                 if(deviceCoordinates.containsKey(deviceName)) {
-                    double x = EARTH_RADIUS * Math.cos(deviceCoordinates.get(entry.getKey()).first) * Math.cos(deviceCoordinates.get(entry.getKey()).second);
-                    double y = EARTH_RADIUS * Math.sin(deviceCoordinates.get(entry.getKey()).first) * Math.cos(deviceCoordinates.get(entry.getKey()).second);
-
+                    double x = EARTH_RADIUS * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).first)) * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).second));
+                    double y = EARTH_RADIUS * Math.sin(Math.toRadians(deviceCoordinates.get(entry.getKey()).first)) * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).second));
                     if (pointVec.size() < 3)
                         pointVec.addElement(Pair.create(x, y));
                     else {
@@ -289,8 +324,8 @@ public class ScanActivity extends AppCompatActivity  {
                 px0 = pointVec.get(0).first;
                 py0 = pointVec.get(0).second;
                 pointVec.set(0, Pair.create(0.0, 0.0));
-                pointVec.set(0, Pair.create(pointVec.get(1).first - px0, pointVec.get(1).second - py0));
-                pointVec.set(0, Pair.create(pointVec.get(2).first - px0, pointVec.get(2).second - py0));
+                pointVec.set(1, Pair.create(pointVec.get(1).first - px0, pointVec.get(1).second - py0));
+                pointVec.set(2, Pair.create(pointVec.get(2).first - px0, pointVec.get(2).second - py0));
 
 //                rotate coordinate system so that pointVec[1] is on the X axis
 //                pointVec[1] = (d,0) where d = distance(pointVec[1], (0,0))
@@ -326,19 +361,23 @@ public class ScanActivity extends AppCompatActivity  {
             double cY, dY;
             cY = dY = pointVec.get(1).second + r1;
 
-            double middleX = (bX -aX) / 2;
+            double middleX = (bX - aX) / 2;
             double middleY = (cY - aY) / 2;
+            double middleLen = Math.sqrt(Math.pow(middleX, 2) - Math.pow(middleY, 2));
 
-            middleX += px0;
-            middleY += py0;
             double distanceBack = Math.sqrt(Math.pow(px0, 2) + Math.pow(py0, 2));
             double iX = px0 / distanceBack;
             double iY = py0 / distanceBack;
             double dotProduct_middle = iX * middleX + iY * middleY;
-            double middleYCoord = Math.sqrt(Math.pow(distanceBack, 2) - Math.pow(dotProduct_middle, 2));
-            double tst = dotProduct_middle * middleYCoord / 2 * 2 * Math.PI / 360;
-            double longti = Math.asin(dotProduct_middle * middleYCoord / 2);
-            double lati = Math.acos(dotProduct_middle/Math.cos(longti));
+
+            double middleYCoord = Math.sqrt(Math.pow(middleLen, 2) - Math.pow(dotProduct_middle, 2)) +py0;
+            dotProduct_middle += px0;
+            double longti = Math.atan(middleYCoord/dotProduct_middle);
+            double lati = Math.acos(middleYCoord/(EARTH_RADIUS * Math.sin(longti)));
+
+            myLong = Math.toDegrees(longti);
+            myLat = Math.toDegrees(lati);
+
             System.out.println(longti + "\n" + lati + "\n\n\n");
 
             }
