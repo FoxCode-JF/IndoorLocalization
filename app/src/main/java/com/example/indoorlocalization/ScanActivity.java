@@ -53,7 +53,10 @@ public class ScanActivity extends AppCompatActivity  {
     static HashMap<String, Integer> MACandTxPowerMap = new HashMap<String, Integer>() {
         {
             put("88:40:3B:EE:97:6B", -60);  // watch
-            put("CC:98:8B:CF:BC:82", -60);  // headphones
+            put("CC:98:8B:CF:BC:82", -60);  // Jerek headphones
+            put("38:18:4C:17:54:80", -60);  // Andreas Headphones
+            put("0C:E4:A0:B4:AB:54", -60); // Jerek Phone
+            put("64:A2:F9:B5:28:69", -60); // Andreas Phone
 //            Thingy's:
             put("dc:ee:f9:e0:3d:4e", -60);
             put("f9:fd:a4:88:ce:9e", -60);
@@ -160,6 +163,7 @@ public class ScanActivity extends AppCompatActivity  {
             new ScanCallback() {
                 @Override
                 public void onScanResult(int callbackType, final ScanResult result) {
+                    System.out.println("test");
                     super.onScanResult(callbackType, result);
 //                    TODO: determine power correctry or delete function
 //                    determineTxPower(result);
@@ -168,12 +172,12 @@ public class ScanActivity extends AppCompatActivity  {
                     {
                         mScanResult = result;
                         getDeviceTxPower(result);
-                        /*Log.i(TAG, "onLeScan: Address: " + result.getDevice().getAddress() +
+                        Log.i(TAG, "onLeScan: Address: " + result.getDevice().getAddress() +
                                 " Name: " + result.getDevice().getName() +
                                 " RSSI: " + result.getRssi() +
                                 " txPower: " + txPower +
                                 " Distance: " + calculateDistance(result.getRssi(), txPower)
-                        );*/
+                        );
                         if(!MACandRSSIMap.containsKey(result.getDevice().getAddress())) {
                             MACandRSSIMap.put(result.getDevice().getAddress(), result.getRssi());
                         } else {
@@ -322,8 +326,8 @@ public class ScanActivity extends AppCompatActivity  {
             double iY = py0 / distanceBack;
             double dotProduct_middle = iX * middleX + iY * middleY;
             double middleYCoord = Math.sqrt(Math.pow(distanceBack, 2) - Math.pow(dotProduct_middle, 2));
-            double longti = Math.asin(middleX * middleY / 2);
-            double lati = Math.acos(middleX/Math.cos(longti));
+            double longti = Math.asin(dotProduct_middle * middleYCoord / 2);
+            double lati = Math.acos(dotProduct_middle/Math.cos(longti));
             System.out.println(longti + "\n" + lati + "\n\n\n");
 
 
