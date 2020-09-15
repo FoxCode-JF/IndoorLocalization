@@ -75,15 +75,15 @@ public class ScanActivity extends AppCompatActivity  implements LocationListener
     Button stopBtn;
     static HashMap<String, Integer> MACandTxPowerMap = new HashMap<String, Integer>() {
         {
-            put("F8:DF:15:C1:B5:7E", -60);  // watch
-            put("CC:98:8B:CF:BC:82", -60);  // Jerek headphones
-            put("38:18:4C:17:54:80", -60);  // Andreas Headphones
-            put("1B:FC:EE:F5:93:3D", -60); // Jerek Phone
-            put("64:A2:F9:B5:28:69", -60); // Andreas Phone
-
-
-            put("3B:C8:4F:17:35:30", -60); // Andreas Phone
-            put("12:1E:3C:32:41:4C", -60); // Jerek Phone
+//            put("F8:DF:15:C1:B5:7E", -60);  // watch
+//            put("CC:98:8B:CF:BC:82", -60);  // Jerek headphones
+//            put("38:18:4C:17:54:80", -60);  // Andreas Headphones
+//            put("1B:FC:EE:F5:93:3D", -60); // Jerek Phone
+//            put("64:A2:F9:B5:28:69", -60); // Andreas Phone
+//
+//
+//            put("3B:C8:4F:17:35:30", -60); // Andreas Phone
+//            put("12:1E:3C:32:41:4C", -60); // Jerek Phone
 //
 //            Thingy's:
             put("dc:ee:f9:e0:3d:4e", -60);
@@ -118,14 +118,14 @@ public class ScanActivity extends AppCompatActivity  implements LocationListener
 
 //            TEST COORDINATES
 
-            put("F8:DF:15:C1:B5:7E", new Pair<Double, Double>(52.238804, 6.856384));  // watch
-            put("CC:98:8B:CF:BC:82", new Pair<Double, Double>(52.238813, 6.855889));  // Jerek headphones
-            put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
-            put("1B:FC:EE:F5:93:3D", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
-            put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
-
-            put("3B:C8:4F:17:35:30", new Pair<Double, Double>(52.238714, 6.856247)); // Andreas Phone
-            put("12:1E:3C:32:41:4C", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
+//            put("F8:DF:15:C1:B5:7E", new Pair<Double, Double>(52.238804, 6.856384));  // watch
+//            put("CC:98:8B:CF:BC:82", new Pair<Double, Double>(52.238813, 6.855889));  // Jerek headphones
+//            put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
+//            put("1B:FC:EE:F5:93:3D", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
+//            put("38:18:4C:17:54:80", new Pair<Double, Double>(52.238943, 6.856113));  // Andreas Headphones
+//
+//            put("3B:C8:4F:17:35:30", new Pair<Double, Double>(52.238714, 6.856247)); // Andreas Phone
+//            put("12:1E:3C:32:41:4C", new Pair<Double, Double>(52.238755, 6.856647)); // Jerek Phone
 
            /*
             13:7D:D4:1B:D2:C3 -78
@@ -347,6 +347,8 @@ public class ScanActivity extends AppCompatActivity  implements LocationListener
                             .position(new LatLng(deviceCoordinates.get(entry.getKey()).first, deviceCoordinates.get(entry.getKey()).second))
                             .icon(BitmapDescriptorFactory.defaultMarker(180))
                             .title(deviceName));
+
+
                     double x = EARTH_RADIUS * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).first)) * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).second));
                     double y = EARTH_RADIUS * Math.sin(Math.toRadians(deviceCoordinates.get(entry.getKey()).first)) * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).second));
                     if (pointVec.size() < 3)
@@ -476,6 +478,7 @@ public class ScanActivity extends AppCompatActivity  implements LocationListener
         iMarker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(0, 0))
                 .title("Bounding box position"));
+        iMarker.setIcon((BitmapDescriptorFactory.defaultMarker(90)));
     }
     public void checkPermission() {
         if (Build.VERSION.SDK_INT >= 23) {
