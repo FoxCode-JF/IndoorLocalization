@@ -1,8 +1,11 @@
 package com.example.indoorlocalization;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.math.MathUtils;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -11,6 +14,10 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.ArrayMap;
@@ -19,6 +26,15 @@ import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,7 +45,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ScanActivity extends AppCompatActivity  {
+public class ScanActivity extends AppCompatActivity  implements LocationListener, OnMapReadyCallback {
 
     final static String TAG = "INDOOR_LOCALIZATION: ";
     private static final int  EARTH_RADIUS = 6371000;
@@ -43,7 +59,13 @@ public class ScanActivity extends AppCompatActivity  {
 
     private boolean mScanning;
     private boolean mCalibrated;
-
+    private LocationManager locationManager;
+    private Marker mMarker;
+    private GoogleMap mMap;
+    private double latitude;
+    private double longitude;
+    private boolean first = true;
+    private Marker iMarker;
     private ScanResult mScanResult;
     private Handler handler = new Handler();
     private static final long SCAN_PERIOD = 10000; // Stops scanning after 10 seconds.
@@ -140,6 +162,23 @@ public class ScanActivity extends AppCompatActivity  {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan_activity);
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+
+        mapFragment.getMapAsync(this);
+        checkPermission();
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 1 , this);
 
         final BluetoothManager bluetoothManager =(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -304,6 +343,10 @@ public class ScanActivity extends AppCompatActivity  {
 //                System.out.println("\n\n" + entry.getKey() + " " + entry.getValue() + "\n\n");
                 String deviceName = entry.getKey();
                 if(deviceCoordinates.containsKey(deviceName)) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(deviceCoordinates.get(entry.getKey()).first, deviceCoordinates.get(entry.getKey()).second))
+                            .icon(BitmapDescriptorFactory.defaultMarker(180))
+                            .title(deviceName));
                     double x = EARTH_RADIUS * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).first)) * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).second));
                     double y = EARTH_RADIUS * Math.sin(Math.toRadians(deviceCoordinates.get(entry.getKey()).first)) * Math.cos(Math.toRadians(deviceCoordinates.get(entry.getKey()).second));
                     if (pointVec.size() < 3)
@@ -379,6 +422,9 @@ public class ScanActivity extends AppCompatActivity  {
             myLat = Math.toDegrees(lati);
 
             System.out.println(longti + "\n" + lati + "\n\n\n");
+            iMarker.setPosition(new LatLng(longti, lati));
+
+
 
             }
 
@@ -407,6 +453,41 @@ public class ScanActivity extends AppCompatActivity  {
             temp.put(aa.getKey(), aa.getValue());
         }*/
         return list;
+    }
+
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        mMarker.setPosition(new LatLng(latitude, longitude));
+        if(first){
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 16));
+            first = false;
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMarker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(latitude, longitude))
+                .title("GPS position"));
+        mMarker.setIcon((BitmapDescriptorFactory.defaultMarker(270)));
+        iMarker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(0, 0))
+                .title("Bounding box position"));
+    }
+    public void checkPermission() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,}, 1);
+            }
+        }
     }
 }
 
